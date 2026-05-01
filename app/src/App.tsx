@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { HelpCircle, X } from 'lucide-react';
 import { ThemeProvider } from '@/context/ThemeContext';
@@ -205,11 +205,11 @@ export default function App() {
   return (
     <ThemeProvider>
       <SettingsProvider>
-        <BrowserRouter>
+        <HashRouter>
           <OfflineBanner />
           <AnimatedRoutes />
           <KeyboardShortcuts />
-        </BrowserRouter>
+        </HashRouter>
       </SettingsProvider>
     </ThemeProvider>
   );

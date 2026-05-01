@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Paperclip, Settings, BarChart3, X, ChevronUp, ChevronDown, MessageSquare, BookOpen, Zap } from 'lucide-react';
+import { Send, Paperclip, Settings, BarChart3, X, ChevronUp, ChevronDown, MessageSquare, BookOpen, Zap, Download } from 'lucide-react';
 import { fanOutSearch, getDualSynthesis, API_REGISTRY } from '@/api/fanOut';
 import { useSettings } from '@/context/SettingsContext';
 import Navbar from '@/components/Navbar';
@@ -34,6 +34,14 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [currentMode, setCurrentMode] = useState('general');
   const [showResourcePanel, setShowResourcePanel] = useState(false);
+  const [memoryPanelOpen, setMemoryPanelOpen] = useState(false);
+  const [memories, setMemories] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('luma_memory_bank') || '[]');
+    } catch {
+      return [];
+    }
+  });
   const [resourceUsage, setResourceUsage] = useState<ResourceUsage>({
     apiCalls: 0,
     tokensUsed: 0,
@@ -51,6 +59,21 @@ export default function ChatPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    localStorage.setItem('luma_memory_bank', JSON.stringify(memories.slice(-12)));
+  }, [memories]);
+
+  const memoryContext = useMemo(() => {
+    if (!memories.length) return '';
+    return `Memory Bank:\n${memories.slice(-6).join('\n')}\n\n`;
+  }, [memories]);
+
+  const addMemory = (entry: string) => {
+    const trimmed = entry.trim();
+    if (!trimmed) return;
+    setMemories(prev => [...prev, trimmed].slice(-12));
+  };
 
   const buildFileContext = async (files: File[]) => {
     const fileSummaries: string[] = [];
@@ -72,7 +95,6 @@ export default function ChatPage() {
     if (!input.trim() && uploadedFiles.length === 0) return;
 
     const fileContext = await buildFileContext(uploadedFiles);
-    const promptText = [input.trim(), fileContext].filter(Boolean).join('\n\n');
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -82,12 +104,14 @@ export default function ChatPage() {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    addMemory(`User: ${input || 'Uploaded files for review'}`);
     setInput('');
     setLoading(true);
 
     try {
       const startTime = performance.now();
 
+      const promptText = [memoryContext, input.trim(), fileContext].filter(Boolean).join('\n\n');
       const { results } = await fanOutSearch(input || fileContext, [], (api, status) => {
         // Update progress if needed
       });
@@ -108,6 +132,8 @@ export default function ChatPage() {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+      const assistantSummary = refinedResponse.split('\n').find(line => line.trim().length > 0) || refinedResponse.slice(0, 120);
+      addMemory(`Assistant: ${assistantSummary.trim()}`);
 
       // Update resource usage
       setResourceUsage(prev => ({
@@ -134,6 +160,9 @@ export default function ChatPage() {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     setUploadedFiles(prev => [...prev, ...files]);
+    if (event.target) {
+      event.target.value = '';
+    }
   };
 
   const removeFile = (index: number) => {
@@ -187,13 +216,35 @@ export default function ChatPage() {
                 ))}
               </div>
             </div>
-            <button
-              onClick={() => setShowResourcePanel(!showResourcePanel)}
-              className="p-2 rounded-lg transition-colors"
-              style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-muted)' }}
-            >
-              <BarChart3 size={16} />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setMemoryPanelOpen(prev => !prev)}
+                className="px-3 py-1 rounded-full text-xs font-semibold transition-all"
+                style={{
+                  backgroundColor: memoryPanelOpen ? 'var(--accent-primary)' : 'var(--bg-secondary)',
+                  color: memoryPanelOpen ? 'var(--text-inverse)' : 'var(--text-secondary)',
+                }}
+              >
+                Memory {memories.length > 0 ? `(${memories.length})` : ''}
+              </button>
+              <a
+                href="https://github.com/fagiteemmanuel4-bit/Luma/archive/refs/heads/main.zip"
+                target="_blank"
+                rel="noreferrer"
+                className="px-3 py-1 rounded-full text-xs font-semibold transition-all"
+                style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
+              >
+                <Download size={12} className="inline mr-1" />
+                Download
+              </a>
+              <button
+                onClick={() => setShowResourcePanel(!showResourcePanel)}
+                className="p-2 rounded-lg transition-colors"
+                style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-muted)' }}
+              >
+                <BarChart3 size={16} />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -234,6 +285,59 @@ export default function ChatPage() {
                     <div className="text-xs" style={{ color: 'var(--text-muted)' }}>Models Used</div>
                   </div>
                 </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Memory Bank */}
+        <AnimatePresence>
+          {memoryPanelOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="border-b overflow-hidden"
+              style={{ borderColor: 'var(--border-subtle)', backgroundColor: 'var(--bg-secondary)' }}
+            >
+              <div className="px-4 py-3 max-w-4xl mx-auto">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                      Memory Bank
+                    </h3>
+                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                      The assistant keeps follow-up context here so replies stay connected.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setMemoryPanelOpen(false)}
+                    className="text-xs font-semibold"
+                    style={{ color: 'var(--accent-primary)' }}
+                  >
+                    Close
+                  </button>
+                </div>
+                {memories.length > 0 ? (
+                  <div className="space-y-2">
+                    {memories.slice(-6).map((item, index) => (
+                      <div
+                        key={index}
+                        className="rounded-2xl p-3"
+                        style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
+                      >
+                        <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
+                          {item.startsWith('User:') ? 'User' : 'Assistant'}
+                        </p>
+                        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{item.replace(/^User: |^Assistant: /, '')}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                    No memory stored yet. Start a chat and follow up to build context.
+                  </p>
+                )}
               </div>
             </motion.div>
           )}
