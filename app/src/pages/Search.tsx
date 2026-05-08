@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Share2, Send, ChevronDown, ChevronUp, ExternalLink, BookOpen, Lightbulb, FileText, Sparkles } from 'lucide-react';
+import { Share2, Send, ExternalLink, BookOpen, Lightbulb, FileText, Sparkles, Zap, Download } from 'lucide-react';
 import { fanOutSearch, getSynthesis, API_REGISTRY } from '@/api/fanOut';
 import { useSettings } from '@/context/SettingsContext';
 import SearchBar from '@/components/SearchBar';
@@ -176,12 +176,13 @@ function formatMessage(text: string) {
 }
 
 function parseAnswer(text: string) {
-  const summary = text.match(/(?:##?\s*)?Summary\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:Key Facts|What This Means|Further Reading|$))/i)?.[1]?.trim() || '';
-  const keyFactsMatch = text.match(/(?:##?\s*)?Key Facts\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:What This Means|Further Reading|$))/i);
+  const summary = text.match(/(?:##?\s*)?Summary\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:Key Facts|What This Means|Take Action|Further Reading|$))/i)?.[1]?.trim() || '';
+  const keyFactsMatch = text.match(/(?:##?\s*)?Key Facts\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:What This Means|Take Action|Further Reading|$))/i);
   const keyFacts = keyFactsMatch ? keyFactsMatch[1].trim().split('\n').filter(l => l.trim()).map(l => l.replace(/^[-•*]\s*/, '').trim()) : [];
-  const whatThisMeans = text.match(/(?:##?\s*)?What This Means\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:Further Reading|$))/i)?.[1]?.trim() || '';
+  const whatThisMeans = text.match(/(?:##?\s*)?What This Means\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:Take Action|Further Reading|$))/i)?.[1]?.trim() || '';
+  const takeAction = text.match(/(?:##?\s*)?Take Action\s*[:]?\s*\n?([\s\S]*?)(?=(?:Further Reading|$))/i)?.[1]?.trim() || '';
   const furtherReading = text.match(/(?:##?\s*)?Further Reading\s*[:]?\s*\n?([\s\S]*)/i)?.[1]?.trim().split('\n').filter(l => l.trim()).map(l => l.replace(/^[-•*]\s*/, '').trim()) || [];
-  return { summary, keyFacts, whatThisMeans, furtherReading };
+  return { summary, keyFacts, whatThisMeans, takeAction, furtherReading };
 }
 
 export default function SearchPage() {
@@ -200,8 +201,10 @@ export default function SearchPage() {
   const [followUpInput, setFollowUpInput] = useState('');
   const [showFollowUp, setShowFollowUp] = useState(false);
   const [shareClicked, setShareClicked] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [randomFact] = useState(() => FACTS[Math.floor(Math.random() * FACTS.length)]);
 
+  const answerRef = useRef<HTMLDivElement>(null);
   const { displayed: typedAnswer, done } = useTypewriter(answer, 12);
 
   // Query counter
@@ -238,7 +241,7 @@ export default function SearchPage() {
     if (q) {
       performSearch(q, initialTopics);
     }
-  }, [q]); // eslint-disable-line
+  }, [q, topicsParam]); // eslint-disable-line
 
   const handleSearch = (query: string, topics: string[]) => {
     const params: Record<string, string> = { q: query };
@@ -266,6 +269,30 @@ export default function SearchPage() {
     } catch { /* fallback */ }
     setShareClicked(true);
     setTimeout(() => setShareClicked(false), 2500);
+  };
+
+  const handleDownload = async () => {
+    if (!answerRef.current || downloading) return;
+    setDownloading(true);
+
+    try {
+      const html2canvas = (await import('html2canvas')).default;
+      const canvas = await html2canvas(answerRef.current, {
+        backgroundColor: '#0A0F1E', // Match primary bg
+        scale: 2,
+        logging: false,
+        useCORS: true
+      });
+
+      const link = document.createElement('a');
+      link.download = `luma-research-${q.slice(0, 20).replace(/\s+/g, '-')}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      console.error('Download failed', err);
+    } finally {
+      setDownloading(false);
+    }
   };
 
   const handleReadingLevelChange = async (level: string) => {
@@ -349,9 +376,9 @@ export default function SearchPage() {
                     borderLeft: '3px solid var(--accent-primary)',
                   }}
                 >
-                  <div className="p-6">
+                  <div ref={answerRef} className="p-6">
                     {/* Reading Level Toggle */}
-                    <div className="flex gap-1 mb-5">
+                    <div className="flex gap-1 mb-5" data-html2canvas-ignore>
                       {['simple', 'standard', 'technical'].map((level) => (
                         <button
                           key={level}
@@ -429,6 +456,22 @@ export default function SearchPage() {
                       </div>
                     )}
 
+                    {/* Take Action */}
+                    {parsed.takeAction && (
+                      <div className="mb-5">
+                        <div className="w-full h-px mb-3" style={{ backgroundColor: 'var(--border-subtle)' }} />
+                        <div className="flex items-center gap-2 mb-2">
+                          <Zap size={14} style={{ color: 'var(--accent-primary)' }} />
+                          <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-primary)' }}>
+                            Take Action
+                          </span>
+                        </div>
+                        <p className="text-sm leading-relaxed font-body font-medium p-3 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--text-primary)' }}>
+                          {parsed.takeAction}
+                        </p>
+                      </div>
+                    )}
+
                     {/* Further Reading */}
                     {parsed.furtherReading.length > 0 && (
                       <div>
@@ -450,26 +493,40 @@ export default function SearchPage() {
                     )}
                   </div>
 
-                  {/* Share Button */}
-                  <div className="px-6 py-3 flex items-center justify-between" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                  {/* Share & Download Buttons */}
+                  <div className="px-6 py-3 flex items-center justify-between" style={{ borderTop: '1px solid var(--border-subtle)' }} data-html2canvas-ignore>
                     <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                       {done ? 'Answer complete' : 'Typing answer...'}
                     </span>
-                    <button
-                      onClick={handleShare}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
-                      style={{
-                        backgroundColor: shareClicked ? 'rgba(34,197,94,0.15)' : 'var(--bg-secondary)',
-                        color: shareClicked ? '#22c55e' : 'var(--accent-primary)',
-                        border: `1px solid ${shareClicked ? '#22c55e' : 'var(--border-subtle)'}`,
-                      }}
-                    >
-                      {shareClicked ? (
-                        <>Copied! ✓</>
-                      ) : (
-                        <><Share2 size={12} /> Share</>
-                      )}
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleDownload}
+                        disabled={downloading}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
+                        style={{
+                          backgroundColor: 'var(--bg-secondary)',
+                          color: 'var(--accent-primary)',
+                          border: '1px solid var(--border-subtle)',
+                        }}
+                      >
+                        <Download size={12} /> {downloading ? 'Saving...' : 'Export Research'}
+                      </button>
+                      <button
+                        onClick={handleShare}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
+                        style={{
+                          backgroundColor: shareClicked ? 'rgba(34,197,94,0.15)' : 'var(--bg-secondary)',
+                          color: shareClicked ? '#22c55e' : 'var(--accent-primary)',
+                          border: `1px solid ${shareClicked ? '#22c55e' : 'var(--border-subtle)'}`,
+                        }}
+                      >
+                        {shareClicked ? (
+                          <>Copied! ✓</>
+                        ) : (
+                          <><Share2 size={12} /> Share</>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               ) : null}
@@ -511,6 +568,7 @@ export default function SearchPage() {
                     backgroundColor: 'var(--bg-card)',
                     border: '1.5px solid var(--border-medium)',
                   }}
+                  data-html2canvas-ignore
                 >
                   <input
                     type="text"

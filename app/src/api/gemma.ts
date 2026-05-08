@@ -1,21 +1,40 @@
 const GEMMA_API_KEY = import.meta.env.VITE_GEMMA_API_KEY || '';
-const GEMMA_MODEL = import.meta.env.VITE_GEMMA_MODEL || 'gemma-4-27b-it';
+const GEMMA_MODEL = import.meta.env.VITE_GEMMA_MODEL || 'gemma-2-27b-it';
 
 export async function synthesizeAnswer(query: string, apiData: any, readingLevel: string) {
   try {
+    if (!GEMMA_API_KEY) {
+      console.warn('VITE_GEMMA_API_KEY is not set. Synthesis will use fallback.');
+      return generateFallbackAnswer(query, apiData, readingLevel);
+    }
+
     const levelPrompt = readingLevel === 'simple'
       ? 'Respond as if explaining to a 12-year-old. Short sentences. No jargon. Use analogies.'
       : readingLevel === 'technical'
       ? 'Respond for a domain expert. Include precise terminology, cite mechanisms, and explain clearly.'
       : 'Respond for a general educated adult audience. Be conversational, clear, and informative.';
 
-    const systemPrompt = `You are Luma, a friendly AI research assistant. Use the user question and the API data to answer in natural, human-like language. Start with a short explanation that directly answers the question, then include a few helpful facts, practical meaning, and source-based reading suggestions.
+    const systemPrompt = `You are Luma, a friendly AI research assistant. Use the user question and the API data to answer in natural, human-like language.
 
-Structure your answer like this:
-1) A natural short summary sentence or two
-2) Key Facts: 3-4 bullets, with source labels if possible
-3) What This Means: one sentence of practical context
-4) Further Reading: two suggestions based on the provided sources
+Structure your answer EXACTLY like this:
+## Summary
+[A natural short summary sentence or two]
+
+## Key Facts
+- [Fact 1]
+- [Fact 2]
+- [Fact 3]
+
+## What This Means
+[One sentence of practical context]
+
+## Take Action
+[1-2 practical, high-impact steps the user can take related to this topic]
+
+## Further Reading
+- [Suggestion 1]
+- [Suggestion 2]
+
 ${levelPrompt}
 Respond in the same language as the query.
 Do not make up facts. If information is missing, say that clearly.`;
@@ -31,7 +50,7 @@ Do not make up facts. If information is missing, say that clearly.`;
         body: JSON.stringify({
           contents: [
             { role: 'user', parts: [{ text: systemPrompt }] },
-            { role: 'model', parts: [{ text: 'Understood. I am Luma, ready to synthesize knowledge from the provided API data.' }] },
+            { role: 'model', parts: [{ text: 'Understood. I will provide research syntheses with Summary, Key Facts, What This Means, Take Action, and Further Reading sections.' }] },
             { role: 'user', parts: [{ text: `QUERY: ${query}\n\nRAW API DATA:\n${JSON.stringify(apiData, null, 2)}` }] },
           ],
           generationConfig: {
@@ -51,6 +70,7 @@ Do not make up facts. If information is missing, say that clearly.`;
     }
 
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    if (!text) throw new Error('Empty response');
     return text;
   } catch (e) {
     console.error('Gemma synthesis error:', e);
@@ -59,10 +79,9 @@ Do not make up facts. If information is missing, say that clearly.`;
 }
 
 function generateFallbackAnswer(query: string, apiData: any, readingLevel: string) {
-  const sources = Object.entries(apiData).filter(([, value]) => value);
+  const sources = Object.entries(apiData).filter(([key, value]) => value && !keyIsContext(key, value));
   const sourceNames = sources.map(([key]) => key).join(', ');
   const firstSource = sources[0]?.[0] || 'the available sources';
-  const levelLabel = readingLevel === 'simple' ? 'simple terms' : readingLevel === 'technical' ? 'technical detail' : 'clear, informative language';
 
   const textFromSource = getSourceSnippetForFallback(sources[0]?.[0], sources[0]?.[1]);
   const naturalSummary = textFromSource
@@ -78,28 +97,38 @@ function generateFallbackAnswer(query: string, apiData: any, readingLevel: strin
     ? `Use this information as a starting point, and follow the source links for more detail.`
     : `There is not enough data to answer the question confidently.`;
 
-  return `## Summary\n\n${naturalSummary}\n\n## Key Facts\n\n${facts.join('\n')}\n\n## What This Means\n\n${practical}\n\n## Further Reading\n\n- Check the source data from ${sourceNames || 'the available APIs'} for more detail.\n- Refine your query with a more specific question if you need deeper insight.`;
+  const action = sources.length > 0
+    ? `Explore the sources provided to verify this information and share it with your community.`
+    : `Try refining your search to find actionable data.`;
+
+  return `## Summary\n\n${naturalSummary}\n\n## Key Facts\n\n${facts.length > 0 ? facts.join('\n') : '- No specific facts available.'}\n\n## What This Means\n\n${practical}\n\n## Take Action\n\n${action}\n\n## Further Reading\n\n- Check the source data from ${sourceNames || 'the available APIs'} for more detail.\n- Refine your query with a more specific question if you need deeper insight.`;
+}
+
+function keyIsContext(key: string, val: any) {
+    return key === 'refinement_context' || (typeof val === 'object' && val !== null && 'refinement_context' in val);
 }
 
 function getSourceSnippetForFallback(key: string, data: any) {
   if (!data) return '';
+  const actualData = data.data || data;
+
   switch (key) {
     case 'wikipedia':
-      return data.extract || data.title || 'Wikipedia provided an overview.';
+      return actualData.extract || actualData.title || 'Wikipedia provided an overview.';
     case 'nasa':
-      return data.apod?.explanation?.slice(0, 160) || 'NASA provided a space-related summary.';
+      return actualData.apod?.explanation?.slice(0, 160) || 'NASA provided a space-related summary.';
     case 'newsapi':
-      return data.articles?.[0]?.description || data.articles?.[0]?.title || 'NewsAPI returned a news summary.';
+      return actualData.articles?.[0]?.description || actualData.articles?.[0]?.title || 'NewsAPI returned a news summary.';
     case 'openLibrary':
-      return data.books?.[0]?.title ? `${data.books[0].title} by ${data.books[0].author_name?.join(', ') || 'unknown author'}` : 'Open Library returned book metadata.';
+      return actualData.books?.[0]?.title ? `${actualData.books[0].title} by ${actualData.books[0].author_name?.join(', ') || 'unknown author'}` : 'Open Library returned book metadata.';
     case 'openMeteo':
-      return data.current?.temperature_2m != null ? `Current temperature is ${data.current.temperature_2m}°C.` : 'Open-Meteo provided local weather details.';
+      return actualData.current?.temperature_2m != null ? `Current temperature is ${actualData.current.temperature_2m}°C.` : 'Open-Meteo provided local weather details.';
     case 'pubmed':
-      return data.articles?.[0]?.title || 'PubMed returned medical literature information.';
+      return actualData.articles?.[0]?.title || 'PubMed returned medical literature information.';
     case 'restCountries':
-      return data.countries?.[0]?.name?.common || 'REST Countries returned country information.';
+      return actualData.countries?.[0]?.name?.common || 'REST Countries returned country information.';
     case 'worldBank':
-      return data.indicators?.[0]?.name || 'World Bank returned economic indicators.';
+      return actualData.indicators?.[0]?.name || 'World Bank returned economic indicators.';
     default:
       return '';
   }
