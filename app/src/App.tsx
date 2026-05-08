@@ -4,16 +4,34 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { HelpCircle, X } from 'lucide-react';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { SettingsProvider } from '@/context/SettingsContext';
+import { CurrencyProvider } from '@/context/CurrencyContext';
+import { HelmetProvider } from 'react-helmet-async';
+import { Toaster } from 'sonner';
+
 import Home from '@/pages/Home';
 import SearchPage from '@/pages/Search';
 import ChatPage from '@/pages/Chat';
 import About from '@/pages/About';
 import HowItWorks from '@/pages/HowItWorks';
 import Sources from '@/pages/Sources';
-import Privacy from '@/pages/Privacy';
-import Terms from '@/pages/Terms';
-import Contact from '@/pages/Contact';
+import Pricing from '@/pages/Pricing';
+import { Terms, Privacy, DMCA, Cookies } from '@/pages/LegalPages';
+import { Contact, Help, Appeal } from '@/pages/SupportPages';
 import NotFound from '@/pages/NotFound';
+
+import Login from '@/pages/Login';
+import Signup from '@/pages/Signup';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
+import VerifyEmail from '@/pages/VerifyEmail';
+
+import Profile from '@/pages/Profile';
+import ProfileEdit from '@/pages/ProfileEdit';
+import ChangeEmail from '@/pages/ChangeEmail';
+import ChangePassword from '@/pages/ChangePassword';
+import Watchlist from '@/pages/Watchlist';
+import History from '@/pages/History';
+import Settings from '@/pages/Settings';
 
 function KeyboardShortcuts() {
   const [open, setOpen] = useState(false);
@@ -192,9 +210,32 @@ function AnimatedRoutes() {
         <Route path="/about" element={<About />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/sources" element={<Sources />} />
+        <Route path="/pricing" element={<Pricing />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
+        <Route path="/dmca" element={<DMCA />} />
+        <Route path="/cookies" element={<Cookies />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/help" element={<Help />} />
+        <Route path="/appeal" element={<Appeal />} />
+
+        {/* Auth */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/register" element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+
+        {/* Profile */}
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile/edit" element={<ProfileEdit />} />
+        <Route path="/profile/change-email" element={<ChangeEmail />} />
+        <Route path="/profile/change-password" element={<ChangePassword />} />
+        <Route path="/profile/watchlist" element={<Watchlist />} />
+        <Route path="/profile/history" element={<History />} />
+        <Route path="/settings" element={<Settings />} />
+
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>
@@ -203,14 +244,19 @@ function AnimatedRoutes() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <SettingsProvider>
-        <HashRouter>
-          <OfflineBanner />
-          <AnimatedRoutes />
-          <KeyboardShortcuts />
-        </HashRouter>
-      </SettingsProvider>
-    </ThemeProvider>
+    <HelmetProvider>
+      <ThemeProvider>
+        <SettingsProvider>
+          <CurrencyProvider>
+            <HashRouter>
+              <Toaster position="top-center" richColors />
+              <OfflineBanner />
+              <AnimatedRoutes />
+              <KeyboardShortcuts />
+            </HashRouter>
+          </CurrencyProvider>
+        </SettingsProvider>
+      </ThemeProvider>
+    </HelmetProvider>
   );
 }
