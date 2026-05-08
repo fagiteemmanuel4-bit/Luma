@@ -45,23 +45,18 @@ function KeyboardShortcuts() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-50 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
+        className="fixed bottom-6 right-6 z-50 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 group"
         style={{
           backgroundColor: 'var(--bg-card)',
           color: 'var(--text-muted)',
           border: '1px solid var(--border-subtle)',
           boxShadow: 'var(--shadow-md)',
         }}
-        onMouseEnter={(e) => {
-          (e.target as HTMLElement).style.color = 'var(--accent-primary)';
-          (e.target as HTMLElement).style.borderColor = 'var(--accent-primary)';
-        }}
-        onMouseLeave={(e) => {
-          (e.target as HTMLElement).style.color = 'var(--text-muted)';
-          (e.target as HTMLElement).style.borderColor = 'var(--border-subtle)';
-        }}
       >
-        <HelpCircle size={18} />
+        <div className="absolute inset-0 rounded-full border border-transparent group-hover:border-[var(--accent-primary)] transition-colors" />
+        <div className="relative group-hover:text-[var(--accent-primary)] transition-colors flex items-center justify-center">
+          <HelpCircle size={18} />
+        </div>
       </button>
 
       <AnimatePresence>
@@ -124,7 +119,7 @@ function KeyboardShortcuts() {
 }
 
 function OfflineBanner() {
-  const [offline, setOffline] = useState(false);
+  const [offline, setOffline] = useState(() => typeof navigator !== 'undefined' ? !navigator.onLine : false);
   const [showOnline, setShowOnline] = useState(false);
 
   useEffect(() => {
@@ -139,7 +134,6 @@ function OfflineBanner() {
 
     window.addEventListener('offline', onOffline);
     window.addEventListener('online', onOnline);
-    setOffline(!navigator.onLine);
 
     return () => {
       window.removeEventListener('offline', onOffline);

@@ -22,7 +22,14 @@ function getStatusIcon(status: string) {
 }
 
 export default function Sources() {
-  const [queryCount, setQueryCount] = useState(() => parseInt(localStorage.getItem('luma_query_count') || '0'));
+  const [queryCount] = useState(() => parseInt(localStorage.getItem('luma_query_count') || '0'));
+
+  const [reliabilityScores] = useState(() => {
+    return APIS.reduce((acc, api) => {
+      acc[api.key] = 85 + Math.random() * 15;
+      return acc;
+    }, {} as Record<string, number>);
+  });
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
@@ -137,14 +144,14 @@ export default function Sources() {
                 <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-secondary)' }}>
                   <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: `${85 + Math.random() * 15}%` }}
+                    animate={{ width: `${reliabilityScores[api.key]}%` }}
                     transition={{ duration: 1 }}
                     className="h-full rounded-full"
                     style={{ background: 'linear-gradient(90deg, var(--accent-glow), var(--accent-primary))' }}
                   />
                 </div>
                 <span className="text-xs font-medium w-12 text-right" style={{ color: 'var(--text-muted)' }}>
-                  {Math.round(85 + Math.random() * 15)}%
+                  {Math.round(reliabilityScores[api.key])}%
                 </span>
               </div>
             ))}
