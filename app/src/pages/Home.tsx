@@ -57,12 +57,46 @@ export default function Home() {
           <SearchBar autoFocus />
         </motion.div>
 
+        {/* Discover for Good */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          className="mt-12 w-full max-w-4xl"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-px flex-1" style={{ backgroundColor: 'var(--border-subtle)' }} />
+            <span className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: 'var(--text-muted)' }}>
+              Discover for Good
+            </span>
+            <div className="h-px flex-1" style={{ backgroundColor: 'var(--border-subtle)' }} />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { title: 'Climate Action', topic: 'climate', desc: 'Real-time carbon and weather data' },
+              { title: 'Health Equity', topic: 'health', desc: 'Latest biomedical research' },
+              { title: 'World Progress', topic: 'world', desc: 'Economic and social indicators' }
+            ].map((item) => (
+              <Link
+                key={item.topic}
+                to={`/search?q=${item.title}&topics=${item.topic}`}
+                className="p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1"
+                style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
+              >
+                <h3 className="font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>{item.title}</h3>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{item.desc}</p>
+              </Link>
+            ))}
+          </div>
+        </motion.div>
+
         {/* Chat Button */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-6"
+          className="mt-10"
         >
           <Link
             to="/chat"
