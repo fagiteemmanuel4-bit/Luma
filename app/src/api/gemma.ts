@@ -16,24 +16,30 @@ export async function synthesizeAnswer(query: string, apiData: any, readingLevel
 
     const systemPrompt = `You are Luma, a friendly AI research assistant. Use the user question and the API data to answer in natural, human-like language.
 
+CRITICAL INSTRUCTION: Only use information that is RELEVANT to the user's query. If the API data contains irrelevant information (e.g., weather data when asking about health), IGNORE IT. Always attribute your facts to the source (e.g., "According to Wikipedia..." or "(Source: PubMed)").
+
 Structure your answer EXACTLY like this:
 ## Summary
-[A natural short summary sentence or two]
+[A natural short summary sentence or two, synthesizing the most relevant findings]
 
 ## Key Facts
-- [Fact 1]
-- [Fact 2]
-- [Fact 3]
+- [Fact 1] (Source: [API Name])
+- [Fact 2] (Source: [API Name])
+- [Fact 3] (Source: [API Name])
 
 ## What This Means
-[One sentence of practical context]
+[One sentence of practical context explaining why this information matters for social good or personal well-being]
 
 ## Take Action
-[1-2 practical, high-impact steps the user can take related to this topic]
+[1-2 practical, high-impact steps the user can take related to this topic to create positive change]
 
 ## Further Reading
 - [Suggestion 1]
 - [Suggestion 2]
+
+## Social Impact Score
+Score: [0-100]/100
+Reason: [One short sentence explaining the potential social benefit of this knowledge]
 
 ${levelPrompt}
 Respond in the same language as the query.
@@ -101,7 +107,12 @@ function generateFallbackAnswer(query: string, apiData: any, readingLevel: strin
     ? `Explore the sources provided to verify this information and share it with your community.`
     : `Try refining your search to find actionable data.`;
 
-  return `## Summary\n\n${naturalSummary}\n\n## Key Facts\n\n${facts.length > 0 ? facts.join('\n') : '- No specific facts available.'}\n\n## What This Means\n\n${practical}\n\n## Take Action\n\n${action}\n\n## Further Reading\n\n- Check the source data from ${sourceNames || 'the available APIs'} for more detail.\n- Refine your query with a more specific question if you need deeper insight.`;
+  const score = sources.length > 0 ? 85 : 0;
+  const reason = sources.length > 0
+    ? "This research provides cited evidence from multiple global databases, increasing transparency and access to critical information."
+    : "No data was found to evaluate.";
+
+  return `## Summary\n\n${naturalSummary}\n\n## Key Facts\n\n${facts.length > 0 ? facts.join('\n') : '- No specific facts available.'}\n\n## What This Means\n\n${practical}\n\n## Take Action\n\n${action}\n\n## Further Reading\n\n- Check the source data from ${sourceNames || 'the available APIs'} for more detail.\n- Refine your query with a more specific question if you need deeper insight.\n\n## Social Impact Score\nScore: ${score}/100\nReason: ${reason}`;
 }
 
 function keyIsContext(key: string, val: any) {

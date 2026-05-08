@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Share2, Send, ExternalLink, BookOpen, Lightbulb, FileText, Sparkles, Zap, Download } from 'lucide-react';
+import { Share2, Send, ExternalLink, BookOpen, Lightbulb, FileText, Sparkles, Zap, Download, Bookmark, BookmarkCheck } from 'lucide-react';
 import { fanOutSearch, getSynthesis, API_REGISTRY } from '@/api/fanOut';
 import { useSettings } from '@/context/SettingsContext';
+import { useLibrary } from '@/hooks/useLibrary';
 import SearchBar from '@/components/SearchBar';
 import Navbar from '@/components/Navbar';
 
@@ -176,13 +177,38 @@ function formatMessage(text: string) {
 }
 
 function parseAnswer(text: string) {
-  const summary = text.match(/(?:##?\s*)?Summary\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:Key Facts|What This Means|Take Action|Further Reading|$))/i)?.[1]?.trim() || '';
-  const keyFactsMatch = text.match(/(?:##?\s*)?Key Facts\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:What This Means|Take Action|Further Reading|$))/i);
-  const keyFacts = keyFactsMatch ? keyFactsMatch[1].trim().split('\n').filter(l => l.trim()).map(l => l.replace(/^[-•*]\s*/, '').trim()) : [];
-  const whatThisMeans = text.match(/(?:##?\s*)?What This Means\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:Take Action|Further Reading|$))/i)?.[1]?.trim() || '';
-  const takeAction = text.match(/(?:##?\s*)?Take Action\s*[:]?\s*\n?([\s\S]*?)(?=(?:Further Reading|$))/i)?.[1]?.trim() || '';
-  const furtherReading = text.match(/(?:##?\s*)?Further Reading\s*[:]?\s*\n?([\s\S]*)/i)?.[1]?.trim().split('\n').filter(l => l.trim()).map(l => l.replace(/^[-•*]\s*/, '').trim()) || [];
-  return { summary, keyFacts, whatThisMeans, takeAction, furtherReading };
+  const sections = {
+    summary: /(?:##?\s*)?Summary\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:Key Facts|What This Means|Take Action|Further Reading|Social Impact Score|$))/i,
+    keyFacts: /(?:##?\s*)?Key Facts\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:What This Means|Take Action|Further Reading|Social Impact Score|$))/i,
+    whatThisMeans: /(?:##?\s*)?What This Means\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:Take Action|Further Reading|Social Impact Score|$))/i,
+    takeAction: /(?:##?\s*)?Take Action\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:Further Reading|Social Impact Score|$))/i,
+    furtherReading: /(?:##?\s*)?Further Reading\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:Social Impact Score|$))/i,
+    socialImpact: /(?:##?\s*)?Social Impact Score\s*[:]?\s*\n?([\s\S]*)/i
+  };
+
+  const getMatch = (regex: RegExp) => text.match(regex)?.[1]?.trim() || '';
+
+  const summary = getMatch(sections.summary);
+  const keyFacts = getMatch(sections.keyFacts).split('\n').filter(l => l.trim()).map(l => l.replace(/^[-•*]\s*/, '').trim());
+  const whatThisMeans = getMatch(sections.whatThisMeans);
+  const takeAction = getMatch(sections.takeAction);
+  const furtherReading = getMatch(sections.furtherReading).split('\n').filter(l => l.trim()).map(l => l.replace(/^[-•*]\s*/, '').trim());
+
+  const socialImpactRaw = getMatch(sections.socialImpact);
+  const scoreMatch = socialImpactRaw.match(/Score:\s*(\d+)/i);
+  const reasonMatch = socialImpactRaw.match(/Reason:\s*([\s\S]*)/i);
+
+  return {
+    summary,
+    keyFacts,
+    whatThisMeans,
+    takeAction,
+    furtherReading,
+    socialImpact: {
+      score: scoreMatch ? parseInt(scoreMatch[1]) : null,
+      reason: reasonMatch ? reasonMatch[1].trim() : ''
+    }
+  };
 }
 
 export default function SearchPage() {
@@ -192,8 +218,10 @@ export default function SearchPage() {
   const initialTopics = topicsParam ? topicsParam.split(',') : [];
 
   const { readingLevel, setReadingLevel } = useSettings();
+  const { saveItem, isSaved } = useLibrary();
   const [currentLevel, setCurrentLevel] = useState(readingLevel);
   const [loading, setLoading] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
   const [answer, setAnswer] = useState('');
   const [apiResults, setApiResults] = useState<Record<string, any>>({});
   const [apiProgress, setApiProgress] = useState<Record<string, string>>({});
@@ -205,7 +233,8 @@ export default function SearchPage() {
   const [randomFact] = useState(() => FACTS[Math.floor(Math.random() * FACTS.length)]);
 
   const answerRef = useRef<HTMLDivElement>(null);
-  const { displayed: typedAnswer, done } = useTypewriter(answer, 12);
+  const parsed = parseAnswer(answer);
+  const { displayed: typedAnswer, done } = useTypewriter(parsed.summary, 12);
 
   // Query counter
   const incrementCounter = useCallback(() => {
@@ -306,8 +335,25 @@ export default function SearchPage() {
     }
   };
 
-  const parsed = parseAnswer(answer);
-  const displaySummary = parsed.summary || answer;
+  const handleSpeak = () => {
+    if (speaking) {
+      window.speechSynthesis.cancel();
+      setSpeaking(false);
+      return;
+    }
+
+    const textToSpeak = `${parsed.summary}. Key facts: ${parsed.keyFacts.join('. ')}. Take action: ${parsed.takeAction}`;
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    utterance.onend = () => setSpeaking(false);
+    setSpeaking(true);
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleSave = () => {
+    if (answer && !isSaved(q)) {
+      saveItem(q, answer, initialTopics);
+    }
+  };
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
@@ -396,7 +442,7 @@ export default function SearchPage() {
                     </div>
 
                     {/* Summary */}
-                    {answer && (
+                    {(typedAnswer || parsed.summary) && (
                       <div className="mb-5">
                         <div className="flex items-center gap-2 mb-2">
                           <FileText size={14} style={{ color: 'var(--accent-primary)' }} />
@@ -407,13 +453,13 @@ export default function SearchPage() {
                         <div
                           className="text-sm leading-relaxed font-body"
                           style={{ color: 'var(--text-secondary)' }}
-                          dangerouslySetInnerHTML={{ __html: formatMessage(typedAnswer || displaySummary) }}
+                          dangerouslySetInnerHTML={{ __html: formatMessage(typedAnswer || parsed.summary || (answer.length < 500 ? answer : '')) }}
                         />
                       </div>
                     )}
 
                     {/* Key Facts */}
-                    {parsed.keyFacts.length > 0 && (
+                    {done && parsed.keyFacts.length > 0 && (
                       <div className="mb-5">
                         <div className="w-full h-px mb-3" style={{ backgroundColor: 'var(--border-subtle)' }} />
                         <div className="flex items-center gap-2 mb-2">
@@ -440,14 +486,14 @@ export default function SearchPage() {
                       </div>
                     )}
 
-                    {/* What This Means */}
-                    {parsed.whatThisMeans && (
+                    {/* Gemma's Insight */}
+                    {done && parsed.whatThisMeans && (
                       <div className="mb-5">
                         <div className="w-full h-px mb-3" style={{ backgroundColor: 'var(--border-subtle)' }} />
                         <div className="flex items-center gap-2 mb-2">
                           <Lightbulb size={14} style={{ color: 'var(--accent-primary)' }} />
                           <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-primary)' }}>
-                            What This Means
+                            Gemma's Insight
                           </span>
                         </div>
                         <p className="text-sm leading-relaxed font-body" style={{ color: 'var(--text-secondary)' }}>
@@ -457,7 +503,7 @@ export default function SearchPage() {
                     )}
 
                     {/* Take Action */}
-                    {parsed.takeAction && (
+                    {done && parsed.takeAction && (
                       <div className="mb-5">
                         <div className="w-full h-px mb-3" style={{ backgroundColor: 'var(--border-subtle)' }} />
                         <div className="flex items-center gap-2 mb-2">
@@ -473,8 +519,8 @@ export default function SearchPage() {
                     )}
 
                     {/* Further Reading */}
-                    {parsed.furtherReading.length > 0 && (
-                      <div>
+                    {done && parsed.furtherReading.length > 0 && (
+                      <div className="mb-5">
                         <div className="w-full h-px mb-3" style={{ backgroundColor: 'var(--border-subtle)' }} />
                         <div className="flex items-center gap-2 mb-2">
                           <BookOpen size={14} style={{ color: 'var(--accent-primary)' }} />
@@ -491,6 +537,33 @@ export default function SearchPage() {
                         </ul>
                       </div>
                     )}
+
+                    {/* Social Impact Score */}
+                    {done && parsed.socialImpact.score !== null && (
+                      <div className="mt-6 pt-4 rounded-xl p-4" style={{ backgroundColor: 'rgba(var(--accent-primary-rgb), 0.05)', border: '1px solid var(--border-subtle)' }}>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Sparkles size={16} className="text-yellow-500" />
+                            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-primary)' }}>
+                              Gemma Impact Score
+                            </span>
+                          </div>
+                          <span className="text-lg font-display font-bold" style={{ color: 'var(--accent-primary)' }}>
+                            {parsed.socialImpact.score}/100
+                          </span>
+                        </div>
+                        <div className="h-2 w-full bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden mb-3">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${parsed.socialImpact.score}%` }}
+                            className="h-full bg-gradient-to-r from-yellow-400 to-orange-500"
+                          />
+                        </div>
+                        <p className="text-xs italic" style={{ color: 'var(--text-muted)' }}>
+                          {parsed.socialImpact.reason}
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Share & Download Buttons */}
@@ -499,6 +572,18 @@ export default function SearchPage() {
                       {done ? 'Answer complete' : 'Typing answer...'}
                     </span>
                     <div className="flex gap-2">
+                      <button
+                        onClick={handleSpeak}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
+                        style={{
+                          backgroundColor: speaking ? 'rgba(var(--accent-primary-rgb), 0.2)' : 'var(--bg-secondary)',
+                          color: 'var(--accent-primary)',
+                          border: '1px solid var(--border-subtle)',
+                        }}
+                      >
+                        {speaking ? <Zap size={12} className="animate-pulse" /> : <BookOpen size={12} />}
+                        {speaking ? 'Stop' : 'Listen'}
+                      </button>
                       <button
                         onClick={handleDownload}
                         disabled={downloading}
@@ -510,6 +595,18 @@ export default function SearchPage() {
                         }}
                       >
                         <Download size={12} /> {downloading ? 'Saving...' : 'Export Research'}
+                      </button>
+                      <button
+                        onClick={handleSave}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
+                        style={{
+                          backgroundColor: isSaved(q) ? 'rgba(var(--accent-primary-rgb), 0.1)' : 'var(--bg-secondary)',
+                          color: 'var(--accent-primary)',
+                          border: `1px solid ${isSaved(q) ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
+                        }}
+                      >
+                        {isSaved(q) ? <BookmarkCheck size={12} /> : <Bookmark size={12} />}
+                        {isSaved(q) ? 'Saved' : 'Save to Library'}
                       </button>
                       <button
                         onClick={handleShare}
