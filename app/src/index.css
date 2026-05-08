@@ -8,9 +8,9 @@
     --bg-secondary: #EDE8DF;
     --bg-card: #FDFAF5;
     --bg-glass: rgba(253, 250, 245, 0.72);
-    --accent-primary: #C17D3C;
-    --accent-glow: #E8A44A;
-    --accent-soft: #F5DEB3;
+    --accent-primary: #ff1f3d;
+    --accent-glow: #ff4d64;
+    --accent-soft: rgba(255, 31, 61, 0.1);
     --text-primary: #1A1208;
     --text-secondary: #5C4A2A;
     --text-muted: #9C8060;
@@ -20,10 +20,10 @@
     --shadow-sm: 0 2px 8px rgba(26, 18, 8, 0.06);
     --shadow-md: 0 8px 32px rgba(26, 18, 8, 0.10);
     --shadow-lg: 0 24px 64px rgba(26, 18, 8, 0.14);
-    --shadow-amber: 0 0 40px rgba(193, 125, 60, 0.20);
-    --orb-color-1: rgba(232, 164, 74, 0.18);
-    --orb-color-2: rgba(193, 125, 60, 0.12);
-    --orb-color-3: rgba(245, 222, 179, 0.25);
+    --shadow-red: 0 0 40px rgba(255, 31, 61, 0.20);
+    --orb-color-1: rgba(255, 31, 61, 0.15);
+    --orb-color-2: rgba(255, 77, 100, 0.10);
+    --orb-color-3: rgba(255, 31, 61, 0.05);
     --font-scale: 1;
     --radius: 0.625rem;
     
@@ -57,15 +57,15 @@
     --text-secondary: #A8B4C8;
     --text-muted: #5A6A82;
     --text-inverse: #F5F0E8;
-    --border-subtle: rgba(245, 163, 35, 0.12);
-    --border-medium: rgba(245, 163, 35, 0.25);
+    --border-subtle: rgba(255, 31, 61, 0.12);
+    --border-medium: rgba(255, 31, 61, 0.25);
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.5);
-    --shadow-amber: 0 0 40px rgba(245, 163, 35, 0.25);
-    --orb-color-1: rgba(245, 163, 35, 0.15);
-    --orb-color-2: rgba(193, 125, 60, 0.12);
-    --orb-color-3: rgba(232, 164, 74, 0.10);
+    --shadow-red: 0 0 40px rgba(255, 31, 61, 0.25);
+    --orb-color-1: rgba(255, 31, 61, 0.15);
+    --orb-color-2: rgba(255, 77, 100, 0.12);
+    --orb-color-3: rgba(255, 31, 61, 0.10);
     
     --background: 220 40% 8%;
     --foreground: 40 23% 95%;
@@ -188,16 +188,16 @@
   100% { background-position: 0% 50%; }
 }
 .offline-banner {
-  background: linear-gradient(90deg, #C17D3C, #E8A44A, #C17D3C);
+  background: linear-gradient(90deg, #ff1f3d, #ff4d64, #ff1f3d);
   background-size: 200% 100%;
   animation: gradientShift 3s ease infinite;
 }
 
 /* Mic pulse ring */
 @keyframes micPulse {
-  0% { box-shadow: 0 0 0 0 rgba(193, 125, 60, 0.4); }
-  70% { box-shadow: 0 0 0 12px rgba(193, 125, 60, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(193, 125, 60, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(255, 31, 61, 0.4); }
+  70% { box-shadow: 0 0 0 12px rgba(255, 31, 61, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 31, 61, 0); }
 }
 .mic-pulse {
   animation: micPulse 1.5s infinite;

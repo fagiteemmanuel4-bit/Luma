@@ -19,10 +19,10 @@ export default function Navbar() {
   }, []);
 
   const navLinks = [
-    { label: 'About', path: '/about' },
-    { label: 'How It Works', path: '/how-it-works' },
-    { label: 'Sources', path: '/sources' },
-    { label: 'Contact', path: '/contact' },
+    { label: 'Pricing', path: '/pricing' },
+    { label: 'Movies', path: '/#' },
+    { label: 'TV Shows', path: '/#' },
+    { label: 'Anime', path: '/#' },
   ];
 
   const isHome = location.pathname === '/';
@@ -46,10 +46,10 @@ export default function Navbar() {
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 group">
               <span
-                className="font-display text-2xl tracking-tight"
+                className="font-display text-2xl tracking-tight uppercase font-bold"
                 style={{ color: 'var(--accent-primary)' }}
               >
-                Luma
+                Screenix
               </span>
             </Link>
 
@@ -144,9 +144,9 @@ export default function Navbar() {
                 </AnimatePresence>
               </button>
 
-              {/* Settings */}
-              <button
-                onClick={() => setShowSettings(true)}
+              {/* Profile Link */}
+              <Link
+                to="/profile"
                 className="p-2 rounded-lg transition-all duration-200"
                 style={{ color: 'var(--text-secondary)' }}
                 onMouseEnter={(e) => {
@@ -157,10 +157,10 @@ export default function Navbar() {
                   (e.target as HTMLElement).style.backgroundColor = 'transparent';
                   (e.target as HTMLElement).style.color = 'var(--text-secondary)';
                 }}
-                aria-label="Settings"
+                aria-label="Profile"
               >
                 <Settings size={18} />
-              </button>
+              </Link>
 
               {/* Mobile Menu Toggle */}
               <button

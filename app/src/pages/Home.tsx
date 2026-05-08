@@ -30,10 +30,10 @@ export default function Home() {
           initial={{ scale: 0.85, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
-          className="font-display text-6xl sm:text-7xl md:text-8xl lg:text-9xl tracking-tight text-center mb-4"
+          className="font-display text-6xl sm:text-7xl md:text-8xl lg:text-9xl tracking-tight text-center mb-4 uppercase font-bold"
           style={{ color: 'var(--text-primary)' }}
         >
-          Luma
+          Screenix
         </motion.h1>
 
         {/* Tagline */}
@@ -44,7 +44,7 @@ export default function Home() {
           className="font-body text-lg sm:text-xl md:text-2xl text-center mb-10 max-w-xl"
           style={{ color: 'var(--text-secondary)' }}
         >
-          Every question deserves a real answer.
+          Unlimited Movies, TV Shows & Anime.
         </motion.p>
 
         {/* Search Bar */}

@@ -3,12 +3,13 @@ import { motion } from 'framer-motion';
 
 export default function Footer() {
   const links = [
-    { label: 'About', path: '/about' },
-    { label: 'How It Works', path: '/how-it-works' },
-    { label: 'API Sources', path: '/sources' },
+    { label: 'Pricing', path: '/pricing' },
     { label: 'Privacy', path: '/privacy' },
     { label: 'Terms', path: '/terms' },
+    { label: 'DMCA', path: '/dmca' },
+    { label: 'Cookies', path: '/cookies' },
     { label: 'Contact', path: '/contact' },
+    { label: 'Help', path: '/help' },
   ];
 
   return (
@@ -23,8 +24,8 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <span className="font-display text-xl" style={{ color: 'var(--accent-primary)' }}>Luma</span>
-            <span className="text-xs font-body" style={{ color: 'var(--text-muted)' }}>— Universal Knowledge Engine</span>
+            <span className="font-display text-xl uppercase font-bold" style={{ color: 'var(--accent-primary)' }}>Screenix</span>
+            <span className="text-xs font-body" style={{ color: 'var(--text-muted)' }}>— Premium Streaming Platform</span>
           </div>
 
           {/* Links */}
