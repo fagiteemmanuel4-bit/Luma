@@ -14,32 +14,33 @@ export async function synthesizeAnswer(query: string, apiData: any, readingLevel
       ? 'Respond for a domain expert. Include precise terminology, cite mechanisms, and explain clearly.'
       : 'Respond for a general educated adult audience. Be conversational, clear, and informative.';
 
-    const systemPrompt = `You are Luma, a friendly AI research assistant. Use the user question and the API data to answer in natural, human-like language.
+    const systemPrompt = `You are Luma, a friendly AI research assistant. Your goal is to provide a detailed, conversational, and comprehensive research briefing based on the user's question and the provided API data.
 
-CRITICAL INSTRUCTION: Only use information that is RELEVANT to the user's query. If the API data contains irrelevant information (e.g., weather data when asking about health), IGNORE IT. Always attribute your facts to the source (e.g., "According to Wikipedia..." or "(Source: PubMed)").
+CRITICAL INSTRUCTION: Synthesize the information into a cohesive narrative. Do not just list facts. Explain the "why" and "how". Only use RELEVANT data. Always attribute facts to their source (e.g., "(Source: Wikipedia)").
 
 Structure your answer EXACTLY like this:
-## Summary
-[A natural short summary sentence or two, synthesizing the most relevant findings]
 
-## Key Facts
-- [Fact 1] (Source: [API Name])
-- [Fact 2] (Source: [API Name])
-- [Fact 3] (Source: [API Name])
+## Research Briefing
+[A detailed, conversational, and comprehensive explanation of the topic. This should be 2-3 paragraphs of deep information that helps the user truly understand the subject.]
 
-## What This Means
-[One sentence of practical context explaining why this information matters for social good or personal well-being]
+## Key Findings
+- [Crucial Fact 1] (Source: [API Name])
+- [Crucial Fact 2] (Source: [API Name])
+- [Crucial Fact 3] (Source: [API Name])
 
-## Take Action
-[1-2 practical, high-impact steps the user can take related to this topic to create positive change]
+## Expert Analysis & Implications
+[Deep dive into what this means for society or the individual. Focus on the social impact and future outlook.]
 
-## Further Reading
-- [Suggestion 1]
-- [Suggestion 2]
+## Actionable Steps
+[2-3 practical, high-impact steps the user can take based on this research.]
+
+## Recommended Resources
+- [Resource 1]
+- [Resource 2]
 
 ## Social Impact Score
 Score: [0-100]/100
-Reason: [One short sentence explaining the potential social benefit of this knowledge]
+Reason: [A clear explanation of why this topic is vital for social progress or human well-being.]
 
 ${levelPrompt}
 Respond in the same language as the query.
@@ -112,7 +113,7 @@ function generateFallbackAnswer(query: string, apiData: any, readingLevel: strin
     ? "This research provides cited evidence from multiple global databases, increasing transparency and access to critical information."
     : "No data was found to evaluate.";
 
-  return `## Summary\n\n${naturalSummary}\n\n## Key Facts\n\n${facts.length > 0 ? facts.join('\n') : '- No specific facts available.'}\n\n## What This Means\n\n${practical}\n\n## Take Action\n\n${action}\n\n## Further Reading\n\n- Check the source data from ${sourceNames || 'the available APIs'} for more detail.\n- Refine your query with a more specific question if you need deeper insight.\n\n## Social Impact Score\nScore: ${score}/100\nReason: ${reason}`;
+  return `## Research Briefing\n\n${naturalSummary}\n\n## Key Findings\n\n${facts.length > 0 ? facts.join('\n') : '- No specific facts available.'}\n\n## Expert Analysis & Implications\n\n${practical}\n\n## Actionable Steps\n\n${action}\n\n## Recommended Resources\n\n- Check the source data from ${sourceNames || 'the available APIs'} for more detail.\n- Refine your query with a more specific question if you need deeper insight.\n\n## Social Impact Score\nScore: ${score}/100\nReason: ${reason}`;
 }
 
 function keyIsContext(key: string, val: any) {

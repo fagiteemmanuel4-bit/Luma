@@ -178,11 +178,11 @@ function formatMessage(text: string) {
 
 function parseAnswer(text: string) {
   const sections = {
-    summary: /(?:##?\s*)?Summary\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:Key Facts|What This Means|Take Action|Further Reading|Social Impact Score|$))/i,
-    keyFacts: /(?:##?\s*)?Key Facts\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:What This Means|Take Action|Further Reading|Social Impact Score|$))/i,
-    whatThisMeans: /(?:##?\s*)?What This Means\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:Take Action|Further Reading|Social Impact Score|$))/i,
-    takeAction: /(?:##?\s*)?Take Action\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:Further Reading|Social Impact Score|$))/i,
-    furtherReading: /(?:##?\s*)?Further Reading\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:Social Impact Score|$))/i,
+    summary: /(?:##?\s*)?(?:Summary|Research Briefing)\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:Key Facts|Key Findings|What This Means|Expert Analysis & Implications|Take Action|Actionable Steps|Further Reading|Recommended Resources|Social Impact Score|$))/i,
+    keyFacts: /(?:##?\s*)?(?:Key Facts|Key Findings)\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:What This Means|Expert Analysis & Implications|Take Action|Actionable Steps|Further Reading|Recommended Resources|Social Impact Score|$))/i,
+    whatThisMeans: /(?:##?\s*)?(?:What This Means|Expert Analysis & Implications)\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:Take Action|Actionable Steps|Further Reading|Recommended Resources|Social Impact Score|$))/i,
+    takeAction: /(?:##?\s*)?(?:Take Action|Actionable Steps)\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:Further Reading|Recommended Resources|Social Impact Score|$))/i,
+    furtherReading: /(?:##?\s*)?(?:Further Reading|Recommended Resources)\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:Social Impact Score|$))/i,
     socialImpact: /(?:##?\s*)?Social Impact Score\s*[:]?\s*\n?([\s\S]*)/i
   };
 
@@ -401,9 +401,9 @@ export default function SearchPage() {
         </AnimatePresence>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* LEFT PANEL: Answer Card (40%) */}
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* LEFT PANEL: Detailed AI Briefing (Main Focus - 66%) */}
+          <div className="lg:col-span-8">
             <AnimatePresence mode="wait">
               {loading && !answer ? (
                 <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -447,11 +447,11 @@ export default function SearchPage() {
                         <div className="flex items-center gap-2 mb-2">
                           <FileText size={14} style={{ color: 'var(--accent-primary)' }} />
                           <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-primary)' }}>
-                            Summary
+                            Research Briefing
                           </span>
                         </div>
                         <div
-                          className="text-sm leading-relaxed font-body"
+                          className="text-base leading-relaxed font-body space-y-4"
                           style={{ color: 'var(--text-secondary)' }}
                           dangerouslySetInnerHTML={{ __html: formatMessage(typedAnswer || parsed.summary || (answer.length < 500 ? answer : '')) }}
                         />
@@ -493,12 +493,10 @@ export default function SearchPage() {
                         <div className="flex items-center gap-2 mb-2">
                           <Lightbulb size={14} style={{ color: 'var(--accent-primary)' }} />
                           <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-primary)' }}>
-                            Gemma's Insight
+                            Analysis & Implications
                           </span>
                         </div>
-                        <p className="text-sm leading-relaxed font-body" style={{ color: 'var(--text-secondary)' }}>
-                          {parsed.whatThisMeans}
-                        </p>
+                        <div className="text-sm leading-relaxed font-body" style={{ color: 'var(--text-secondary)' }} dangerouslySetInnerHTML={{ __html: formatMessage(parsed.whatThisMeans) }} />
                       </div>
                     )}
 
@@ -690,8 +688,14 @@ export default function SearchPage() {
             </AnimatePresence>
           </div>
 
-          {/* RIGHT PANEL: Source Cards (60%) */}
-          <div className="lg:col-span-3">
+          {/* RIGHT PANEL: Background Resources (33%) */}
+          <div className="lg:col-span-4">
+            <div className="mb-4 flex items-center gap-2">
+              <BookOpen size={16} style={{ color: 'var(--text-muted)' }} />
+              <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+                Supporting Resources
+              </h2>
+            </div>
             <AnimatePresence>
               {loading && !Object.keys(apiResults).length ? (
                 <motion.div key="source-skeletons" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
