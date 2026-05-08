@@ -1,24 +1,27 @@
 declare module '@/api/*' {
-  const content: any;
-  export = content;
+  const content: unknown;
+  export default content;
 }
 
 declare module '@/components/*' {
-  const content: any;
+  import { ComponentType } from 'react';
+  const content: ComponentType<Record<string, unknown>>;
   export default content;
 }
 
 declare module '@/pages/*' {
-  const content: any;
+  import { ComponentType } from 'react';
+  const content: ComponentType<Record<string, unknown>>;
   export default content;
 }
 
 declare module '@/context/*' {
-  const content: any;
+  import { ReactNode } from 'react';
+  const content: ({ children }: { children: ReactNode }) => JSX.Element;
   export default content;
 }
 
 declare module '@/hooks/*' {
-  const content: any;
+  const content: (...args: unknown[]) => unknown;
   export default content;
 }

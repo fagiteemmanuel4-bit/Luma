@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { searchWikipedia } from './wikipedia';
 import { searchPubMed } from './pubmed';
 import { searchNASA } from './nasa';
@@ -42,7 +43,7 @@ export function getApisForTopics(topics: string[]) {
   return Array.from(apis);
 }
 
-export async function getDualSynthesis(query: string, apiData: any, readingLevel: string, mode: string = 'general') {
+export async function getDualSynthesis(query: string, apiData: Record<string, unknown>, readingLevel: string, mode: string = 'general') {
   // First synthesis with Gemma
   const initialSynthesis = await synthesizeAnswer(query, apiData, readingLevel);
   
@@ -67,9 +68,15 @@ async function refineWithSecondModel(initialResponse: string, query: string, mod
   return `${initialResponse}${enhancement}`;
 }
 
+export interface FanOutResult {
+  data: any;
+  time: number;
+  status: string;
+}
+
 export async function fanOutSearch(query: string, topics: string[], onProgress?: (api: string, status: 'started' | 'done' | 'error', time?: number) => void) {
   const apis = getApisForTopics(topics);
-  const results: Record<string, { data: any; time: number; status: string }> = {};
+  const results: Record<string, FanOutResult> = {};
   
   const promises = apis.map(async (apiKey) => {
     const startTime = performance.now();
@@ -88,7 +95,7 @@ export async function fanOutSearch(query: string, topics: string[], onProgress?:
       
       results[apiKey] = { data, time, status: data ? 'success' : 'empty' };
       onProgress?.(apiKey, 'done', time);
-    } catch (e) {
+    } catch {
       const time = Math.round(performance.now() - startTime);
       results[apiKey] = { data: null, time, status: 'error' };
       onProgress?.(apiKey, 'error', time);
@@ -100,9 +107,9 @@ export async function fanOutSearch(query: string, topics: string[], onProgress?:
   return { results, apis };
 }
 
-export async function getSynthesis(query: string, results: any, readingLevel: string) {
+export async function getSynthesis(query: string, results: Record<string, FanOutResult>, readingLevel: string) {
   const cleanData: Record<string, any> = {};
-  Object.entries(results).forEach(([key, val]: [string, any]) => {
+  Object.entries(results).forEach(([key, val]) => {
     if (val.data) cleanData[key] = val.data;
   });
   

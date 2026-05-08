@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Share2, Send, ChevronDown, ChevronUp, ExternalLink, BookOpen, Lightbulb, FileText, Sparkles } from 'lucide-react';
+import { Share2, Send, ExternalLink, BookOpen, Lightbulb, FileText, Sparkles } from 'lucide-react';
 import { fanOutSearch, getSynthesis, API_REGISTRY } from '@/api/fanOut';
 import { useSettings } from '@/context/SettingsContext';
 import SearchBar from '@/components/SearchBar';
@@ -175,7 +176,14 @@ function formatMessage(text: string) {
   return html;
 }
 
-function parseAnswer(text: string) {
+interface ParsedAnswer {
+  summary: string;
+  keyFacts: string[];
+  whatThisMeans: string;
+  furtherReading: string[];
+}
+
+function parseAnswer(text: string): ParsedAnswer {
   const summary = text.match(/(?:##?\s*)?Summary\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:Key Facts|What This Means|Further Reading|$))/i)?.[1]?.trim() || '';
   const keyFactsMatch = text.match(/(?:##?\s*)?Key Facts\s*[:]?\s*\n?([\s\S]*?)(?=(?:##?\s*)?(?:What This Means|Further Reading|$))/i);
   const keyFacts = keyFactsMatch ? keyFactsMatch[1].trim().split('\n').filter(l => l.trim()).map(l => l.replace(/^[-•*]\s*/, '').trim()) : [];
@@ -184,18 +192,24 @@ function parseAnswer(text: string) {
   return { summary, keyFacts, whatThisMeans, furtherReading };
 }
 
+interface ApiResult {
+  data: any;
+  time: number;
+  status: string;
+}
+
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const q = searchParams.get('q') || '';
   const topicsParam = searchParams.get('topics') || '';
-  const initialTopics = topicsParam ? topicsParam.split(',') : [];
+  const initialTopics = useMemo(() => topicsParam ? topicsParam.split(',') : [], [topicsParam]);
 
   const { readingLevel, setReadingLevel } = useSettings();
   const [currentLevel, setCurrentLevel] = useState(readingLevel);
   const [loading, setLoading] = useState(false);
   const [answer, setAnswer] = useState('');
-  const [apiResults, setApiResults] = useState<Record<string, any>>({});
-  const [apiProgress, setApiProgress] = useState<Record<string, string>>({});
+  const [apiResults, setApiResults] = useState<Record<string, ApiResult>>({});
+  const [apiProgress, setApiProgress] = useState<Record<string, 'started' | 'done' | 'error'>>({});
   const [followUps, setFollowUps] = useState<{ question: string; answer: string }[]>([]);
   const [followUpInput, setFollowUpInput] = useState('');
   const [showFollowUp, setShowFollowUp] = useState(false);
@@ -219,7 +233,7 @@ export default function SearchPage() {
     setFollowUps([]);
     setShowFollowUp(false);
 
-    const onProgress = (api: string, status: string) => {
+    const onProgress = (api: string, status: 'started' | 'done' | 'error') => {
       setApiProgress(prev => ({ ...prev, [api]: status }));
     };
 
@@ -236,9 +250,12 @@ export default function SearchPage() {
 
   useEffect(() => {
     if (q) {
-      performSearch(q, initialTopics);
+      const timer = setTimeout(() => {
+        void performSearch(q, initialTopics);
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }, [q]); // eslint-disable-line
+  }, [q, initialTopics, performSearch]);
 
   const handleSearch = (query: string, topics: string[]) => {
     const params: Record<string, string> = { q: query };
@@ -269,8 +286,8 @@ export default function SearchPage() {
   };
 
   const handleReadingLevelChange = async (level: string) => {
-    setCurrentLevel(level as any);
-    setReadingLevel(level as any);
+    setCurrentLevel(level as 'simple' | 'standard' | 'technical');
+    setReadingLevel(level as 'simple' | 'standard' | 'technical');
     if (q && apiResults) {
       setLoading(true);
       const synthesis = await getSynthesis(q, apiResults, level);
@@ -546,7 +563,7 @@ export default function SearchPage() {
                 </motion.div>
               ) : (
                 <div className="space-y-3">
-                  {Object.entries(apiResults).map(([apiKey, result]: [string, any], index) => {
+                  {Object.entries(apiResults).map(([apiKey, result], index) => {
                     if (!result.data) return null;
                     const api = API_REGISTRY[apiKey as keyof typeof API_REGISTRY];
                     if (!api) return null;
