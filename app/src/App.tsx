@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/context/ThemeContext';
 import { SettingsProvider } from '@/context/SettingsContext';
 import Home from '@/pages/Home';
 import SearchPage from '@/pages/Search';
+import Library from '@/pages/Library';
 import ChatPage from '@/pages/Chat';
 import About from '@/pages/About';
 import HowItWorks from '@/pages/HowItWorks';
@@ -188,6 +189,7 @@ function AnimatedRoutes() {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<SearchPage />} />
+        <Route path="/library" element={<Library />} />
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/about" element={<About />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
