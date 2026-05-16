@@ -2,11 +2,15 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 
 function useQueryCount() {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(() => {
+    // Initial value from localStorage for purity
+    if (typeof window !== 'undefined') {
+      return parseInt(localStorage.getItem('luma_query_count') || '0');
+    }
+    return 0;
+  });
+
   useEffect(() => {
-    // Simulate live counter with localStorage
-    const stored = parseInt(localStorage.getItem('luma_query_count') || '0');
-    setCount(stored);
     const interval = setInterval(() => {
       const current = parseInt(localStorage.getItem('luma_query_count') || '0');
       setCount(current);
@@ -23,7 +27,7 @@ export default function Ticker() {
     `9 Open APIs Connected`,
     `${queryCount.toLocaleString()} Questions Answered`,
     `0 Accounts Required`,
-    `Built on Google Gemma 4`,
+    `Built on Google Gemma 3`,
     `Knowledge For Everyone`,
     `Open Source`,
     `Made in Nigeria 🇳🇬`,

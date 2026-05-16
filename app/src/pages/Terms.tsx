@@ -27,7 +27,7 @@ export default function Terms() {
     },
     {
       title: '5. AI-Generated Content Disclaimer',
-      content: 'Luma uses Google\'s Gemma 4 model to synthesize answers. AI-generated content may contain errors, hallucinations, or outdated information. Mercury makes no warranties about the accuracy, completeness, or reliability of AI-generated responses. Use all results critically and verify independently.',
+      content: 'Luma uses Google\'s Gemma 3 model to synthesize answers. AI-generated content may contain errors, hallucinations, or outdated information. Mercury makes no warranties about the accuracy, completeness, or reliability of AI-generated responses. Use all results critically and verify independently.',
     },
     {
       title: '6. Third-Party Services',

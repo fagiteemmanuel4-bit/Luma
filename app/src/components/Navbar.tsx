@@ -46,12 +46,17 @@ export default function Navbar() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 group">
-              <span
-                className="font-display text-2xl tracking-tight"
-                style={{ color: 'var(--accent-primary)' }}
-              >
-                Luma
-              </span>
+              <div className="flex flex-col">
+                <span
+                  className="font-display text-2xl tracking-tight leading-none"
+                  style={{ color: 'var(--accent-primary)' }}
+                >
+                  Luma <span style={{ color: 'var(--text-primary)' }}>Sight</span>
+                </span>
+                <span className="text-[10px] font-bold tracking-[0.2em] uppercase opacity-50" style={{ color: 'var(--text-primary)' }}>
+                  Beta
+                </span>
+              </div>
             </Link>
 
             {/* Desktop Nav */}

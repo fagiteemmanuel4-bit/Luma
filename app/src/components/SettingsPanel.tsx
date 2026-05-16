@@ -117,7 +117,7 @@ export default function SettingsPanel({ open, onClose }: { open: boolean; onClos
                       {readingLevels.map(level => (
                         <button
                           key={level}
-                          onClick={() => setReadingLevel(level as any)}
+                          onClick={() => setReadingLevel(level as 'simple' | 'standard' | 'technical')}
                           className="flex-1 px-2 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors"
                           style={{
                             backgroundColor: readingLevel === level ? 'var(--accent-primary)' : 'transparent',
@@ -235,7 +235,7 @@ export default function SettingsPanel({ open, onClose }: { open: boolean; onClos
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm" style={{ color: 'var(--text-secondary)' }}>
                     <span>Version</span>
-                    <span>1.0.0 (Gemma 4 Impact Challenge)</span>
+                    <span>1.0.0 (Gemma 3 Impact Challenge)</span>
                   </div>
                   <div className="flex justify-between text-sm" style={{ color: 'var(--text-secondary)' }}>
                     <span>Built by</span>

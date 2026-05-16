@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { Globe, BookOpen, Rocket, Newspaper, Library, BarChart3, Flag, Cloud, CheckCircle, XCircle, HelpCircle } from 'lucide-react';
+import { Globe, BookOpen, Rocket, Newspaper, Library, BarChart3, Flag, Cloud, CheckCircle, XCircle, HelpCircle, Sparkles } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -21,8 +21,51 @@ function getStatusIcon(status: string) {
   return <HelpCircle size={14} className="text-gray-400" />;
 }
 
+function ReliabilityStats() {
+  // Use useState initializer to ensure purity
+  const [stats] = useState(() => APIS.map((api) => {
+    const reliability = 85 + Math.random() * 15;
+    return {
+      key: api.key,
+      name: api.name,
+      reliability,
+      rounded: Math.round(reliability)
+    };
+  }));
+
+  return (
+    <div className="space-y-4">
+      {stats.map((stat) => (
+        <div key={stat.key} className="flex items-center gap-4">
+          <span className="text-sm font-medium w-28 flex-shrink-0 font-body" style={{ color: 'var(--text-primary)' }}>
+            {stat.name}
+          </span>
+          <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${stat.reliability}%` }}
+              transition={{ duration: 1 }}
+              className="h-full rounded-full"
+              style={{ background: 'linear-gradient(90deg, var(--accent-glow), var(--accent-primary))' }}
+            />
+          </div>
+          <span className="text-xs font-medium w-12 text-right" style={{ color: 'var(--text-muted)' }}>
+            {stat.rounded}%
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function Sources() {
-  const [queryCount, setQueryCount] = useState(() => parseInt(localStorage.getItem('luma_query_count') || '0'));
+  const [queryCount] = useState(() => {
+    try {
+      return parseInt(localStorage.getItem('luma_query_count') || '0');
+    } catch {
+      return 0;
+    }
+  });
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
@@ -35,11 +78,15 @@ export default function Sources() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-12"
         >
+          <div className="flex items-center justify-center gap-2 mb-4">
+             <Sparkles className="text-accent-primary" size={24} />
+             <span className="text-xs font-bold uppercase tracking-[0.3em] text-accent-primary">Fan-Out Knowledge Network</span>
+          </div>
           <h1 className="font-display text-5xl sm:text-6xl mb-4" style={{ color: 'var(--text-primary)' }}>
-            API Directory
+            Luma <span className="text-accent-primary">Sources</span>
           </h1>
           <p className="font-body text-lg max-w-2xl mx-auto mb-6" style={{ color: 'var(--text-secondary)' }}>
-            Luma connects to 9 of the world's most powerful open knowledge sources. All free. All public. No API keys required for most.
+            Luma Sight connects to 9 of the world's most powerful open knowledge sources. All free. All public. No API keys required for most.
           </p>
           <div
             className="inline-flex items-center gap-3 px-6 py-3 rounded-xl"
@@ -50,7 +97,7 @@ export default function Sources() {
           >
             <Globe size={20} style={{ color: 'var(--accent-primary)' }} />
             <span className="font-body text-sm" style={{ color: 'var(--text-secondary)' }}>
-              <strong style={{ color: 'var(--accent-primary)' }}>{queryCount.toLocaleString()}</strong> queries answered today
+              <strong style={{ color: 'var(--accent-primary)' }}>{queryCount.toLocaleString()}</strong> queries answered by Gemma 3
             </span>
           </div>
         </motion.div>
@@ -128,27 +175,7 @@ export default function Sources() {
           <h2 className="font-display text-2xl mb-6" style={{ color: 'var(--text-primary)' }}>
             Source Reliability
           </h2>
-          <div className="space-y-4">
-            {APIS.map((api) => (
-              <div key={api.key} className="flex items-center gap-4">
-                <span className="text-sm font-medium w-28 flex-shrink-0 font-body" style={{ color: 'var(--text-primary)' }}>
-                  {api.name}
-                </span>
-                <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-secondary)' }}>
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${85 + Math.random() * 15}%` }}
-                    transition={{ duration: 1 }}
-                    className="h-full rounded-full"
-                    style={{ background: 'linear-gradient(90deg, var(--accent-glow), var(--accent-primary))' }}
-                  />
-                </div>
-                <span className="text-xs font-medium w-12 text-right" style={{ color: 'var(--text-muted)' }}>
-                  {Math.round(85 + Math.random() * 15)}%
-                </span>
-              </div>
-            ))}
-          </div>
+          <ReliabilityStats />
         </motion.div>
       </main>
 

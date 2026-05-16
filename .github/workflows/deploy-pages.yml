@@ -2,7 +2,7 @@ name: Deploy GitHub Pages
 
 on:
   push:
-    branches: [ main, feature/natural-ai-chat ]
+    branches: [ main, feature/natural-ai-chat, jules-18291044430006932990-006ebd65 ]
   workflow_dispatch: {}
 
 jobs:
@@ -26,7 +26,10 @@ jobs:
         run: cd app && npm ci
 
       - name: Build app
-        run: cd app && npm run build
+        run: |
+          cd app
+          npm run build
+          cp dist/index.html dist/404.html
 
       - name: Configure Pages
         uses: actions/configure-pages@v4

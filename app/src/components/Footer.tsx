@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { } from 'framer-motion';
 
 export default function Footer() {
   const links = [
@@ -44,8 +44,8 @@ export default function Footer() {
           </div>
 
           {/* Branding */}
-          <div className="text-xs font-body" style={{ color: 'var(--text-muted)' }}>
-            Built by <span style={{ color: 'var(--accent-primary)' }}>Mercury</span> · Nigeria 🇳🇬
+          <div className="text-xs font-body text-center md:text-right" style={{ color: 'var(--text-muted)' }}>
+            Built by <span style={{ color: 'var(--accent-primary)' }}>Mercury</span> · Powered by <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>Google Gemma 3</span>
           </div>
         </div>
       </div>

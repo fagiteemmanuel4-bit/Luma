@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Paperclip, Settings, BarChart3, X, ChevronUp, ChevronDown, MessageSquare, BookOpen, Zap, Download } from 'lucide-react';
+import { Send, Paperclip, BarChart3, X, MessageSquare, BookOpen, Zap, Download } from 'lucide-react';
 import { fanOutSearch, getDualSynthesis, API_REGISTRY } from '@/api/fanOut';
 import { useSettings } from '@/context/SettingsContext';
 import Navbar from '@/components/Navbar';
@@ -112,7 +112,7 @@ export default function ChatPage() {
       const startTime = performance.now();
 
       const promptText = [memoryContext, input.trim(), fileContext].filter(Boolean).join('\n\n');
-      const { results } = await fanOutSearch(input || fileContext, [], (api, status) => {
+      const { results } = await fanOutSearch(input || fileContext, [], () => {
         // Update progress if needed
       });
 
@@ -143,7 +143,7 @@ export default function ChatPage() {
         modelsUsed: ['Gemma', 'Grok'], // Two models
       }));
 
-    } catch (error) {
+    } catch (error: unknown) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',

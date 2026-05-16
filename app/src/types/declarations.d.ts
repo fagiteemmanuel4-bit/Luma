@@ -1,24 +1,24 @@
 declare module '@/api/*' {
-  const content: any;
-  export = content;
+  const content: unknown;
+  export default content;
 }
 
 declare module '@/components/*' {
-  const content: any;
+  const content: React.ComponentType<Record<string, unknown>>;
   export default content;
 }
 
 declare module '@/pages/*' {
-  const content: any;
+  const content: React.ComponentType<Record<string, unknown>>;
   export default content;
 }
 
 declare module '@/context/*' {
-  const content: any;
+  const content: unknown;
   export default content;
 }
 
 declare module '@/hooks/*' {
-  const content: any;
+  const content: unknown;
   export default content;
 }

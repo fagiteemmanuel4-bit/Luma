@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, Search, X, Clock, Trash2 } from 'lucide-react';
+import { Mic, Search, X, Clock, Trash2, Camera } from 'lucide-react';
 
 const PLACEHOLDERS = [
   "Why is clean water still scarce in 2025?",
@@ -18,16 +18,22 @@ const PLACEHOLDERS = [
 
 const TOPICS = ['Health', 'Science', 'Education', 'Climate', 'Economics', 'World'];
 
+interface HistoryItem {
+  query: string;
+  topics: string[];
+  date: number;
+}
+
 function useQueryHistory() {
-  const [history, setHistory] = useState(() => {
+  const [history, setHistory] = useState<HistoryItem[]>(() => {
     try {
       return JSON.parse(localStorage.getItem('luma_search_history') || '[]');
     } catch { return []; }
   });
 
   const addQuery = useCallback((query: string, topics: string[]) => {
-    setHistory((prev: any[]) => {
-      const filtered = prev.filter((h: any) => h.query !== query);
+    setHistory((prev: HistoryItem[]) => {
+      const filtered = prev.filter((h: HistoryItem) => h.query !== query);
       const next = [{ query, topics, date: Date.now() }, ...filtered].slice(0, 8);
       localStorage.setItem('luma_search_history', JSON.stringify(next));
       return next;
@@ -35,8 +41,8 @@ function useQueryHistory() {
   }, []);
 
   const removeQuery = useCallback((query: string) => {
-    setHistory((prev: any[]) => {
-      const next = prev.filter((h: any) => h.query !== query);
+    setHistory((prev: HistoryItem[]) => {
+      const next = prev.filter((h: HistoryItem) => h.query !== query);
       localStorage.setItem('luma_search_history', JSON.stringify(next));
       return next;
     });
@@ -59,7 +65,7 @@ export default function SearchBar({
 }: {
   initialQuery?: string;
   initialTopics?: string[];
-  onSearch?: (query: string, topics: string[]) => void;
+  onSearch?: (query: string, topics: string[], image?: string) => void;
   compact?: boolean;
   autoFocus?: boolean;
 }) {
@@ -69,7 +75,9 @@ export default function SearchBar({
   const [isListening, setIsListening] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [focused, setFocused] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { history, addQuery, removeQuery, clearAll } = useQueryHistory();
 
@@ -89,15 +97,34 @@ export default function SearchBar({
   }, [autoFocus]);
 
   const handleSubmit = useCallback(() => {
-    if (!query.trim()) return;
+    if (!query.trim() && !selectedImage) return;
     addQuery(query, selectedTopics);
     if (onSearch) {
-      onSearch(query, selectedTopics);
+      onSearch(query, selectedTopics, selectedImage || undefined);
     } else {
       const topicsParam = selectedTopics.length > 0 ? `&topics=${selectedTopics.join(',')}` : '';
-      navigate(`/search?q=${encodeURIComponent(query)}${topicsParam}`);
+      // If we have an image, we need to pass it to the search page.
+      // For now, we use state for simplicity or localStorage for larger images
+      if (selectedImage) {
+        localStorage.setItem('luma_vision_temp', selectedImage);
+      }
+      navigate(`/search?q=${encodeURIComponent(query)}${topicsParam}${selectedImage ? '&vision=true' : ''}`);
     }
-  }, [query, selectedTopics, onSearch, navigate, addQuery]);
+  }, [query, selectedTopics, onSearch, navigate, addQuery, selectedImage]);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setSelectedImage(base64String);
+        // Autofocus for description
+        inputRef.current?.focus();
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const toggleTopic = useCallback((topic: string) => {
     setSelectedTopics(prev =>
@@ -117,7 +144,7 @@ export default function SearchBar({
     recognition.onstart = () => setIsListening(true);
     recognition.onend = () => setIsListening(false);
     recognition.onerror = () => setIsListening(false);
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: { results: Array<{ [key: number]: { transcript: string } }> }) => {
       const transcript = event.results[0][0].transcript;
       setQuery(transcript);
       setTimeout(() => handleSubmit(), 800);
@@ -127,7 +154,7 @@ export default function SearchBar({
   }, [handleSubmit]);
 
   const hasSpeechRecognition = typeof window !== 'undefined' &&
-    !!(window as any).SpeechRecognition || !!(window as any).webkitSpeechRecognition;
+    (!!(window as any).SpeechRecognition || !!(window as any).webkitSpeechRecognition);
 
   return (
     <div className={`w-full ${compact ? 'max-w-xl' : 'max-w-2xl'} mx-auto`}>
@@ -142,6 +169,26 @@ export default function SearchBar({
       >
         {/* Topic tags */}
         <AnimatePresence>
+          {selectedImage && (
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="ml-3 relative group"
+            >
+              <img
+                src={selectedImage}
+                alt="Upload"
+                className="w-10 h-10 rounded-lg object-cover border border-accent-primary"
+              />
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <X size={10} />
+              </button>
+            </motion.div>
+          )}
+
           {selectedTopics.map(topic => (
             <motion.span
               key={topic}
@@ -200,6 +247,22 @@ export default function SearchBar({
             </AnimatePresence>
           </div>
         )}
+
+        {/* Visual Search buttons */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          accept="image/*"
+          onChange={handleImageUpload}
+        />
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="p-2 rounded-xl text-muted hover:text-accent-primary transition-colors"
+          title="Identify image"
+        >
+          <Camera size={18} />
+        </button>
 
         {/* Mic button */}
         {hasSpeechRecognition && (
@@ -267,7 +330,7 @@ export default function SearchBar({
             >
               <Clock size={12} /> Recent Searches
             </div>
-            {history.map((item: any) => (
+            {history.map((item) => (
               <div
                 key={item.query}
                 className="flex items-center justify-between px-3 py-2.5 cursor-pointer transition-colors"

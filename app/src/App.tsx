@@ -125,7 +125,7 @@ function KeyboardShortcuts() {
 }
 
 function OfflineBanner() {
-  const [offline, setOffline] = useState(false);
+  const [offline, setOffline] = useState(() => typeof navigator !== 'undefined' ? !navigator.onLine : false);
   const [showOnline, setShowOnline] = useState(false);
 
   useEffect(() => {
@@ -140,7 +140,6 @@ function OfflineBanner() {
 
     window.addEventListener('offline', onOffline);
     window.addEventListener('online', onOnline);
-    setOffline(!navigator.onLine);
 
     return () => {
       window.removeEventListener('offline', onOffline);
