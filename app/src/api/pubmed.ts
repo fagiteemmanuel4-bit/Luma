@@ -19,19 +19,19 @@ export async function searchPubMed(query: string) {
       { signal: controller.signal }
     );
     const summaryData = await summaryRes.json();
-    const articles = Object.values(summaryData.result || {}).filter((a: any) => a.uid);
+    const articles = Object.values(summaryData.result || {}).filter((a: unknown) => (a as any).uid);
     
     return {
       count: searchData.esearchresult?.count || '0',
-      articles: articles.slice(0, 3).map((a: any) => ({
+      articles: (articles as unknown[]).slice(0, 3).map((a: any) => ({
         title: a.title,
-        authors: a.authors?.map((au: any) => au.name).slice(0, 3).join(', ') || 'N/A',
+        authors: (a.authors as unknown[])?.map((au: any) => au.name).slice(0, 3).join(', ') || 'N/A',
         journal: a.fulljournalname || a.source || 'Journal',
         year: a.pubdate?.split(' ')[0] || 'N/A',
         url: `https://pubmed.ncbi.nlm.nih.gov/${a.uid}/`,
       })),
     };
-  } catch (e) {
+  } catch {
     return null;
   }
 }

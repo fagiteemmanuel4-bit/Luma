@@ -32,7 +32,7 @@ export async function searchNASA(query: string) {
         url: apodData.url,
         hdurl: apodData.hdurl,
       },
-      images: items.slice(0, 3).map((item: any) => ({
+      images: items.slice(0, 3).map((item: { data?: any[]; links?: any[]; href?: string }) => ({
         title: item.data?.[0]?.title || 'NASA Image',
         description: item.data?.[0]?.description || '',
         thumbnail: item.links?.[0]?.href,
@@ -41,7 +41,8 @@ export async function searchNASA(query: string) {
         date_created: item.data?.[0]?.date_created,
       })),
     };
-  } catch (e) {
+  } catch {
+    console.error('NASA search error');
     return null;
   }
 }

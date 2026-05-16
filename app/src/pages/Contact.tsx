@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Send, Github, Linkedin, Twitter, CheckCircle, Mail, MapPin, Clock, Award } from 'lucide-react';
+import { Send, Github, Linkedin, Twitter, CheckCircle, MapPin, Clock, Award } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -232,14 +232,14 @@ export default function Contact() {
                 <h3 className="font-display text-lg" style={{ color: 'var(--text-primary)' }}>Hackathon Context</h3>
               </div>
               <p className="text-sm font-body" style={{ color: 'var(--text-secondary)' }}>
-                Luma was built for the Google Gemma 4 Impact Challenge — a global hackathon to build AI tools that create meaningful, positive change.
+                Luma was built for the Google Gemma 3 Impact Challenge — a global hackathon to build AI tools that create meaningful, positive change.
               </p>
               <div className="flex items-center gap-2 mt-3">
                 <span className="text-xs px-2 py-1 rounded-md font-semibold" style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-muted)' }}>
                   Google
                 </span>
                 <span className="text-xs px-2 py-1 rounded-md font-semibold" style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent-primary)' }}>
-                  Gemma 4
+                  Gemma 3
                 </span>
               </div>
             </div>

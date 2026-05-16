@@ -1,4 +1,4 @@
-export async function searchWorldBank(query: string) {
+export async function searchWorldBank(_query: string) {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -28,7 +28,7 @@ export async function searchWorldBank(query: string) {
       const indicatorData = await dataRes.json();
       
       return {
-        indicators: indicators.slice(0, 5).map((ind: any) => ({
+        indicators: indicators.slice(0, 5).map((ind: { id: string; name: string; sourceNote: string }) => ({
           id: ind.id,
           name: ind.name,
           sourceNote: ind.sourceNote,
@@ -38,7 +38,7 @@ export async function searchWorldBank(query: string) {
     }
     
     return { indicators: [], sampleData: [] };
-  } catch (e) {
+  } catch {
     return null;
   }
 }

@@ -2,18 +2,17 @@ import { searchWikipedia } from './wikipedia';
 import { searchPubMed } from './pubmed';
 import { searchNASA } from './nasa';
 import { searchNewsApi } from './newsApi';
-import { searchOpenLibrary } from './openLibrary';
 import { searchWorldBank } from './worldBank';
 import { searchRestCountries } from './restCountries';
 import { searchOpenMeteo } from './openMeteo';
-import { synthesizeAnswer } from './gemma';
+import { synthesizeAnswer, identifyImage } from './gemma';
+import type { ApiResult, ProgressStatus } from '../types/api';
 
-const API_REGISTRY = {
+const API_REGISTRY: Record<string, { name: string; icon: string; fn: (query: string) => Promise<unknown> }> = {
   wikipedia: { name: 'Wikipedia', icon: '📚', fn: searchWikipedia },
   pubmed: { name: 'PubMed', icon: '🧬', fn: searchPubMed },
   nasa: { name: 'NASA', icon: '🚀', fn: searchNASA },
   newsapi: { name: 'NewsAPI', icon: '📰', fn: searchNewsApi },
-  openLibrary: { name: 'Open Library', icon: '📖', fn: searchOpenLibrary },
   worldBank: { name: 'World Bank', icon: '🌍', fn: searchWorldBank },
   restCountries: { name: 'REST Countries', icon: '🏳️', fn: searchRestCountries },
   openMeteo: { name: 'Open-Meteo', icon: '🌤️', fn: searchOpenMeteo },
@@ -22,7 +21,7 @@ const API_REGISTRY = {
 const TOPIC_APIS = {
   health: ['pubmed', 'worldBank'],
   science: ['nasa', 'pubmed', 'wikipedia'],
-  education: ['openLibrary', 'wikipedia', 'worldBank'],
+  education: ['pubmed', 'wikipedia', 'worldBank'],
   climate: ['openMeteo', 'nasa', 'worldBank'],
   economics: ['worldBank', 'newsapi'],
   world: ['restCountries', 'newsapi', 'wikipedia'],
@@ -42,7 +41,7 @@ export function getApisForTopics(topics: string[]) {
   return Array.from(apis);
 }
 
-export async function getDualSynthesis(query: string, apiData: any, readingLevel: string, mode: string = 'general') {
+export async function getDualSynthesis(query: string, apiData: Record<string, unknown>, readingLevel: string, mode: string = 'general') {
   // First synthesis with Gemma
   const initialSynthesis = await synthesizeAnswer(query, apiData, readingLevel);
   
@@ -67,9 +66,9 @@ async function refineWithSecondModel(initialResponse: string, query: string, mod
   return `${initialResponse}${enhancement}`;
 }
 
-export async function fanOutSearch(query: string, topics: string[], onProgress?: (api: string, status: 'started' | 'done' | 'error', time?: number) => void) {
+export async function fanOutSearch(query: string, topics: string[], onProgress?: (api: string, status: ProgressStatus, time?: number) => void) {
   const apis = getApisForTopics(topics);
-  const results: Record<string, { data: any; time: number; status: string }> = {};
+  const results: Record<string, ApiResult> = {};
   
   const promises = apis.map(async (apiKey) => {
     const startTime = performance.now();
@@ -88,7 +87,8 @@ export async function fanOutSearch(query: string, topics: string[], onProgress?:
       
       results[apiKey] = { data, time, status: data ? 'success' : 'empty' };
       onProgress?.(apiKey, 'done', time);
-    } catch (e) {
+    } catch {
+      console.error(`Error fetching from ${apiKey}`);
       const time = Math.round(performance.now() - startTime);
       results[apiKey] = { data: null, time, status: 'error' };
       onProgress?.(apiKey, 'error', time);
@@ -100,13 +100,23 @@ export async function fanOutSearch(query: string, topics: string[], onProgress?:
   return { results, apis };
 }
 
-export async function getSynthesis(query: string, results: any, readingLevel: string) {
-  const cleanData: Record<string, any> = {};
-  Object.entries(results).forEach(([key, val]: [string, any]) => {
+export async function getSynthesis(query: string, results: Record<string, ApiResult>, readingLevel: string, imageBase64?: string) {
+  const cleanData: Record<string, unknown> = {};
+  Object.entries(results).forEach(([key, val]) => {
     if (val.data) cleanData[key] = val.data;
   });
   
-  return await synthesizeAnswer(query, cleanData, readingLevel);
+  return await synthesizeAnswer(query, cleanData, readingLevel, imageBase64);
+}
+
+export async function processVisionSearch(imageBase64: string, topics: string[], onProgress?: (api: string, status: ProgressStatus, time?: number) => void) {
+  // Stage 1: Identify image with Gemma 3 Vision
+  const identifiedQuery = await identifyImage(imageBase64);
+
+  // Stage 2: Fan out search with identified query
+  const { results } = await fanOutSearch(identifiedQuery, topics, onProgress);
+
+  return { results, identifiedQuery };
 }
 
 export { API_REGISTRY };

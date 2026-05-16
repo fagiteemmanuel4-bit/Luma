@@ -17,7 +17,7 @@ export default function Privacy() {
     },
     {
       title: '3. How Your Queries Are Processed',
-      content: `When you submit a question, it is sent directly to Google's Gemma 4 model via the Gemini API. This means your query is subject to Google's data processing terms. We encourage you to review Google's Privacy Policy at policies.google.com. We do not store your query text on our servers at any point.\n\nAdditionally, your query is sent in parallel to up to nine open public APIs (Wikipedia, NASA, PubMed, etc.). These are public services with their own privacy policies. No personally identifying information is included in these requests.`,
+      content: `When you submit a question, it is sent directly to Google's Gemma 3 model via the Gemini API. This means your query is subject to Google's data processing terms. We encourage you to review Google's Privacy Policy at policies.google.com. We do not store your query text on our servers at any point.\n\nAdditionally, your query is sent in parallel to up to nine open public APIs (Wikipedia, NASA, PubMed, etc.). These are public services with their own privacy policies. No personally identifying information is included in these requests.`,
     },
     {
       title: '4. Local Storage & Caching',

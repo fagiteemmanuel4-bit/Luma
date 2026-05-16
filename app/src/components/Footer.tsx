@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 
 export default function Footer() {
   const links = [
@@ -23,8 +22,8 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <span className="font-display text-xl" style={{ color: 'var(--accent-primary)' }}>Luma</span>
-            <span className="text-xs font-body" style={{ color: 'var(--text-muted)' }}>— Universal Knowledge Engine</span>
+            <span className="font-display text-xl" style={{ color: 'var(--accent-primary)' }}>Luma Sight</span>
+            <span className="text-xs font-body" style={{ color: 'var(--text-muted)' }}>— Multimodal Research Engine</span>
           </div>
 
           {/* Links */}
@@ -44,8 +43,8 @@ export default function Footer() {
           </div>
 
           {/* Branding */}
-          <div className="text-xs font-body" style={{ color: 'var(--text-muted)' }}>
-            Built by <span style={{ color: 'var(--accent-primary)' }}>Mercury</span> · Nigeria 🇳🇬
+          <div className="text-xs font-body text-center md:text-right" style={{ color: 'var(--text-muted)' }}>
+            Built by <span style={{ color: 'var(--accent-primary)' }}>Mercury</span> · Powered by <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>Google Gemma 3</span>
           </div>
         </div>
       </div>

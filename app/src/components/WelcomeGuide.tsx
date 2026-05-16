@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mic, Plane, Share2, Keyboard, ArrowRight, Check } from 'lucide-react';
+import { Mic, Plane, Share2, Keyboard, Check } from 'lucide-react';
 
 const STARTER_PROMPTS = [
   "Why do more children die from malaria in Africa?",
@@ -129,7 +129,7 @@ export default function WelcomeGuide({ open, onClose }: { open: boolean; onClose
                 >
                   <div className="mb-6">
                     <span className="font-display text-[52px] block mb-4" style={{ color: 'var(--accent-primary)' }}>
-                      Luma
+                      Luma Sight
                     </span>
                     <div
                       className="w-20 h-20 rounded-full mx-auto"
@@ -140,10 +140,10 @@ export default function WelcomeGuide({ open, onClose }: { open: boolean; onClose
                     />
                   </div>
                   <h2 className="font-display text-[28px] mb-4" style={{ color: 'var(--text-primary)' }}>
-                    Welcome to Luma.
+                    Welcome to Luma Sight.
                   </h2>
                   <p className="font-body text-base leading-relaxed mb-8" style={{ color: 'var(--text-secondary)' }}>
-                    You just unlocked access to nine of the world's most powerful open knowledge sources — all synthesized by Google's Gemma 4 AI in seconds.
+                    You just unlocked access to nine of the world's most powerful open knowledge sources — all synthesized by Google's Gemma 3 AI in seconds.
                     <br /><br />
                     No account. No tracking. No limits on curiosity.
                     <br /><br />
@@ -200,7 +200,7 @@ export default function WelcomeGuide({ open, onClose }: { open: boolean; onClose
                     Ask anything. Really.
                   </h2>
                   <p className="font-body text-base leading-relaxed mb-2" style={{ color: 'var(--text-secondary)' }}>
-                    Type or speak any question — in your language. Luma simultaneously consults Wikipedia, NASA, PubMed, the World Bank, NewsAPI, and more. Then Gemma 4 synthesizes everything into one clear, cited answer.
+                    Type or speak any question — in your language. Luma Sight simultaneously consults Wikipedia, NASA, PubMed, the World Bank, NewsAPI, and more. Then Gemma 3 synthesizes everything into one clear, cited answer.
                   </p>
                   <p className="text-sm mb-8" style={{ color: 'var(--text-muted)' }}>
                     Average response time: under 4 seconds.
@@ -335,7 +335,7 @@ export default function WelcomeGuide({ open, onClose }: { open: boolean; onClose
                     Built for how you actually use it.
                   </h2>
                   <p className="font-body text-base leading-relaxed mb-8" style={{ color: 'var(--text-secondary)' }}>
-                    Speak, type, go offline, come back. Luma fits around your world — not the other way.
+                    Speak, type, go offline, come back. Luma Sight fits around your world — not the other way.
                   </p>
                   <button
                     onClick={() => setStep(4)}
@@ -393,12 +393,12 @@ export default function WelcomeGuide({ open, onClose }: { open: boolean; onClose
                   <p className="font-body text-base leading-relaxed mb-6" style={{ color: 'var(--text-secondary)' }}>
                     The world's knowledge is now one question away.
                     <br /><br />
-                    Luma is free. No sign-up. No limits.
+                    Luma Sight is free. No sign-up. No limits.
                     <br />
                     Built by Mercury for the people who deserve access to information the most.
                   </p>
                   <p className="text-xs mb-6" style={{ color: 'var(--text-muted)' }}>
-                    Powered by Google Gemma 4 · Built for the Google Gemma 4 Impact Challenge
+                    Powered by Google Gemma 3 · Built for the Google Gemma Impact Challenge
                   </p>
 
                   <div className="space-y-3">

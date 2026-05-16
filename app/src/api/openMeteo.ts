@@ -26,7 +26,7 @@ export async function searchOpenMeteo(query: string) {
       daily: data.daily,
       elevation: data.elevation,
     };
-  } catch (e) {
+  } catch {
     return null;
   }
 }

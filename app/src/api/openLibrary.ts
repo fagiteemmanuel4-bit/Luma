@@ -22,7 +22,7 @@ export async function searchOpenLibrary(query: string) {
         cover_i: b.cover_i,
       })) || [],
     };
-  } catch (e) {
+  } catch {
     return null;
   }
 }

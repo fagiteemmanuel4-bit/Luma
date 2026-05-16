@@ -30,10 +30,10 @@ export default function Home() {
           initial={{ scale: 0.85, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
-          className="font-display text-6xl sm:text-7xl md:text-8xl lg:text-9xl tracking-tight text-center mb-4"
+          className="font-display text-6xl sm:text-7xl md:text-8xl lg:text-9xl tracking-tight text-center mb-4 flex items-center gap-4"
           style={{ color: 'var(--text-primary)' }}
         >
-          Luma
+          Luma <span style={{ color: 'var(--accent-primary)' }}>Sight</span>
         </motion.h1>
 
         {/* Tagline */}
@@ -41,10 +41,12 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="font-body text-lg sm:text-xl md:text-2xl text-center mb-10 max-w-xl"
+          className="font-body text-lg sm:text-xl md:text-2xl text-center mb-10 max-w-2xl"
           style={{ color: 'var(--text-secondary)' }}
         >
-          Every question deserves a real answer.
+          Multimodal accessibility for the world's knowledge.
+          <br />
+          <span className="text-sm opacity-70">See, search, and understand life-critical data with Gemma 3.</span>
         </motion.p>
 
         {/* Search Bar */}

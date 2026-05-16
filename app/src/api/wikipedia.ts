@@ -36,7 +36,7 @@ export async function searchWikipedia(query: string) {
       };
     }
     return null;
-  } catch (e) {
+  } catch {
     return null;
   }
 }

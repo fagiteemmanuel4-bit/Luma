@@ -31,7 +31,7 @@ export async function searchRestCountries(query: string) {
     
     const data = await res.json();
     return { countries: data.slice(0, 5) };
-  } catch (e) {
+  } catch {
     return null;
   }
 }

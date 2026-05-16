@@ -13,8 +13,8 @@ const FLOW_STEPS = [
   },
   {
     icon: <Brain size={20} />,
-    label: 'Gemma 4 Intent Parse',
-    desc: 'Gemma 4 analyzes your question to understand intent and domain.',
+    label: 'Gemma 3 Intent Parse',
+    desc: 'Gemma 3 analyzes your question to understand intent and domain.',
     color: 'var(--accent-glow)',
   },
   {
@@ -32,13 +32,13 @@ const FLOW_STEPS = [
   {
     icon: <FileText size={20} />,
     label: 'Synthesis & Answer',
-    desc: 'Gemma 4 synthesizes everything into a structured, cited response.',
+    desc: 'Gemma 3 synthesizes everything into a structured, cited response.',
     color: 'var(--accent-primary)',
   },
 ];
 
 const TECH_STACK = [
-  { name: 'Google Gemma 4', category: 'AI Model', desc: 'Open weights, 27B parameter model for synthesis' },
+  { name: 'Google Gemma 3', category: 'AI Model', desc: 'Open weights, 27B parameter model for synthesis' },
   { name: 'Firebase', category: 'Hosting & Data', desc: 'Hosting and anonymous query counters' },
   { name: 'Wikipedia API', category: 'Knowledge', desc: 'World\'s largest free encyclopedia' },
   { name: 'PubMed / NCBI', category: 'Science', desc: '30M+ biomedical literature records' },

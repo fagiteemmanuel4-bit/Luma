@@ -25,7 +25,7 @@ export async function searchNewsApi(query: string) {
         urlToImage: a.urlToImage,
       })) || [],
     };
-  } catch (e) {
+  } catch {
     return null;
   }
 }
